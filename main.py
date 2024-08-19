@@ -49,6 +49,7 @@ def download_audio_with_ytdlp(youtube_url: str) -> str:
         'format': 'bestaudio/best',
         'extractaudio': True,  # Only keep the audio
         'audioformat': 'wav',  # Specify WAV format
+        'cookies': 'youtube.com_cookies.txt',
         #'outtmpl': f'{sanitized_url}.%(ext)s',  # Save file as sanitized_url.wav
         'outtmpl': '%(title)s.%(ext)s',  # save file as title.wav
         'postprocessors': [{
