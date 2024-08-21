@@ -67,6 +67,7 @@ def download_audio_with_ytdlp(youtube_url: str) -> str:
             'preferredcodec': 'wav',
             'preferredquality': '192',
         }],
+        'cookiesfrombrowser': ('firefox','chrome','vivaldi', 'default', 'BASICTEXT', 'Meta'),
         #'verbose': True, # for checking yt-dlp logs
         'no-cookies': True,
     }
