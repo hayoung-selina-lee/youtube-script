@@ -46,7 +46,8 @@ def download_audio_with_ytdlp(youtube_url: str) -> str:
     sanitized_url = sanitize_filename(youtube_url)  # Sanitize URL for filename
 
     ydl_opts = {
-        'format': 'bestaudio/best',
+        'format': 'bestaudio/best', 
+        'verbose': True,
         'extractaudio': True,  # Only keep the audio
         'audioformat': 'wav',  # Specify WAV format
         'cookies': 'youtube.com_cookies.txt',
@@ -57,6 +58,7 @@ def download_audio_with_ytdlp(youtube_url: str) -> str:
             'preferredcodec': 'wav',
             'preferredquality': '192',
         }],
+        'cookiesfrombrowser': ('firefox','chrome')
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
