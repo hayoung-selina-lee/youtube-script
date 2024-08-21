@@ -20,6 +20,7 @@ async def get_script_from_url(youtubeURL: str):
     filename = download_audio_with_ytdlp(youtubeURL)
     #filename = "The REAL GENIUS of Steve Jobs.wav"
     words_and_timing = transcribe_audio_with_word_time_offsets(filename)
+    cleanup_file(filename)
     final_sentence_and_timing = run_openai_for_making_sentence(words_and_timing)
 
     # remove escape word and restore json string
@@ -30,7 +31,7 @@ async def get_script_from_url(youtubeURL: str):
     json_data = json.loads(cleaned_json_str)
 
     formatted_json = json.dumps(json_data, indent=2, ensure_ascii=False)
-    
+
     return {
         "message": f"Audio downloaded and saved as {filename}",
         #"url": url,
@@ -60,7 +61,7 @@ def download_audio_with_ytdlp(youtube_url: str) -> str:
             'preferredcodec': 'wav',
             'preferredquality': '192',
         }],
-        'verbose': True,
+        #'verbose': True, # for checking yt-dlp logs
         'no-cookies': True,
     }
 
@@ -117,3 +118,8 @@ def run_openai_for_translating_korean(script):
         {"role": "user", "content": "I will give you few sentences, starting and ending time. Could you translate sentence that is between starting time and ending time to Korean without any other mention that you want to say? And could ou give me during time between start and end time? For example, if you get (Sentence: The greatest people are self-managing. Start: 0.0s, End : 1.72s), you should return (text: The greatest people are self-managing. start: 0.0s, end : 1.72s, dur : 1.72s, kor : 가장 위대한 사람들은 자기 관리를 합니다.). below are the scripts." + script}]
     )
     return completion.choices[0].message.content
+
+def cleanup_file(file_path):
+    if os.path.exists(file_path):
+        print("### remove")
+        os.remove(file_path)
