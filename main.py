@@ -7,6 +7,8 @@ import tempfile
 import os
 import logging
 import requests
+import re
+from youtube_transcript_api import YouTubeTranscriptApi
 
 from openai import OpenAI
 
@@ -19,6 +21,22 @@ logger = logging.getLogger(__name__)
 @app.get("/")
 def root():
     return {"message": "Hello World"}
+
+@app.get("/script3")
+async def get_script_from_url_with_google(youtubeURL: str):
+    video_id = get_youtube_video_id(youtubeURL)
+    words_and_timing = transcribe_audio_with_word_time_offsets_using_google_api(video_id)
+    final_sentence_and_timing = run_openai_for_making_sentence(words_and_timing)
+    #formatted_json = remove_escape_word_and_restore_json_string(final_sentence_and_timing)
+
+    return {
+        #"url": url,
+        #"words_and_timing" : words_and_timing,
+        "final_sentence_and_timing" : final_sentence_and_timing,
+        #"formatted_json" : formatted_json,
+        #"kor_sentence_and_timing" : kor_sentence_and_timing
+    }
+
 
 @app.get("/script/")
 async def get_script_from_url_without_download(youtubeURL: str):
@@ -216,3 +234,42 @@ def cleanup_file(file_path):
         os.remove(file_path)
 
     logger.info("remove downloaded file + ")
+
+def get_youtube_video_id(url: str) -> str:
+    patterns = [
+        r"youtube\.com/watch\?v=([a-zA-Z0-9_-]{11})",
+        r"youtu\.be/([a-zA-Z0-9_-]{11})",
+        r"youtube\.com/embed/([a-zA-Z0-9_-]{11})"
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, url)
+        if match:
+            return match.group(1)
+    
+    raise ValueError("Invalid YouTube URL")
+
+def transcribe_audio_with_word_time_offsets_using_google_api(video_id: str) -> str:
+    try:
+        # Fetch the transcript
+        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        
+        # Format the transcript into a single string
+        transcript_text = ""
+        
+        # Iterate through the transcript entries
+        for i, entry in enumerate(transcript):
+            start_time = entry['start']
+            text = entry['text']
+            
+            # Compute end time
+            if i + 1 < len(transcript):
+                end_time = transcript[i + 1]['start']
+            else:
+                end_time = start_time + entry['duration']
+            
+            transcript_text += f"Word: {text}, Start: {start_time}s, End: {end_time}s / "
+        
+        return transcript_text.rstrip(" / ")
+    except Exception as e:
+        return f"Error fetching transcript: {e}"
