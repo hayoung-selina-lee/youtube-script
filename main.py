@@ -3,6 +3,8 @@ import yt_dlp
 import urllib.parse
 from transformers import pipeline
 import json
+import tempfile
+import os
 
 from openai import OpenAI
 
@@ -45,26 +47,28 @@ def download_audio_with_ytdlp(youtube_url: str) -> str:
     """Downloads audio from YouTube using yt-dlp and returns the filename."""
     sanitized_url = sanitize_filename(youtube_url)  # Sanitize URL for filename
 
+    temp_dir = tempfile.gettempdir()  # Get system temporary directory (e.g., /tmp)
+
     ydl_opts = {
-        'format': 'bestaudio/best', 
-        'verbose': True,
+        'format': 'bestaudio/best',
         'extractaudio': True,  # Only keep the audio
         'audioformat': 'wav',  # Specify WAV format
-        'cookies': 'youtube.com_cookies.txt',
         #'outtmpl': f'{sanitized_url}.%(ext)s',  # Save file as sanitized_url.wav
-        'outtmpl': '%(title)s.%(ext)s',  # save file as title.wav
+        'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),  # Save to temporary directory
         'postprocessors': [{
             'key': 'FFmpegExtractAudio',
             'preferredcodec': 'wav',
             'preferredquality': '192',
         }],
-        'cookiesfrombrowser': ('firefox','chrome')
+        'verbose': True,
+        'no-cookies': True,
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         info_dict = ydl.extract_info(youtube_url, download=True)
         file_name = ydl.prepare_filename(info_dict).replace('.webm', '.wav')
     
+    print("#### file anme = " + file_name)
     return file_name
 
 def transcribe_audio_with_word_time_offsets(audio_file_path):
