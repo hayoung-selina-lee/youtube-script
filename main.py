@@ -5,11 +5,15 @@ from transformers import pipeline
 import json
 import tempfile
 import os
+import logging
 
 from openai import OpenAI
 
 client = OpenAI()
 app = FastAPI()
+
+logging.basicConfig(level=logging.INFO, format='[MIMOS][%(levelname)s] %(message)s       (%(asctime)s)')
+logger = logging.getLogger(__name__)
 
 @app.get("/")
 def root():
@@ -45,6 +49,8 @@ def sanitize_filename(url: str) -> str:
     return urllib.parse.quote_plus(url)  # Replace unsafe characters
 
 def download_audio_with_ytdlp(youtube_url: str) -> str:
+    logger.info(f"+ Downloading video from URL: {youtube_url}")
+
     """Downloads audio from YouTube using yt-dlp and returns the filename."""
     sanitized_url = sanitize_filename(youtube_url)  # Sanitize URL for filename
 
@@ -69,10 +75,12 @@ def download_audio_with_ytdlp(youtube_url: str) -> str:
         info_dict = ydl.extract_info(youtube_url, download=True)
         file_name = ydl.prepare_filename(info_dict).replace('.webm', '.wav')
     
-    print("#### file anme = " + file_name)
+    logger.info(f"Downloading video from URL: {youtube_url} +")
+
     return file_name
 
 def transcribe_audio_with_word_time_offsets(audio_file_path):
+    logger.info("+ get words and time from audio file")
     # Load the Whisper model using the pipeline
     transcriber = pipeline(
         "automatic-speech-recognition",
@@ -97,17 +105,23 @@ def transcribe_audio_with_word_time_offsets(audio_file_path):
     # Remove the trailing slash and space
     words_and_timing = words_and_timing.rstrip(" / ")
     
+    logger.info("get words and time from audio file +")
     return words_and_timing
 
 
-def run_openai_for_making_sentence(script):          
+def run_openai_for_making_sentence(script):       
+    
+    logger.info("+ get sentence from words")
+
     completion = client.chat.completions.create(
     model="gpt-4o-mini",
     messages=[
         {"role": "system", "content": "You're an english app maker, skilled in making setence very well using given words. You can give me sentences naturally"},
         {"role": "user", "content": "I will give you word and start, end for staring time and end time of the word. If the sentence's time is more than 10s, you should give me separate the sentence. Could you make some sentences with completed sentence and star timestamp, end timestamp and during time (end time - start time) without any other mention that you want to say? And could you translate the sentence to Korean with very naturally like born in Korea? ?For example, If you got (Word : I, Start : 0.00 seconds, End : 1 seconds / Word : need, Start : 1 seconds, End : 2 seconds / Word : to, Start : 2 seconds, End : 3 seconds / Word : work, Start : 3 seconds, End : 4 seconds / Word : hard, Start : 4 seconds, End : 5 seconds / Word : because, Start : 5 seconds, End : 5.5 seconds / Word : I'm, Start : 5.5 seconds, End : 6 seconds / Word : Elon Musk, Start : 6 seconds, End : 6.6 seconds / Word : Sorry, Start : 6.6 seconds, End : 6.8 seconds / Word : Just, Start : 6.8 seconds, End : 6.9 seconds / Word : a, Start : 6.9 seconds, End : 7 seconds / Word : kidding, Start : 7 seconds, End : 7.1 seconds.) Then, you should give with the json format (text : I need to work hard because I'm Elon Musk, start : 0.00 seconds, end : 6.6 seconds, dur : 6.6 seconds, kor: 나는 일론 머스크이기 떄문에, 일을 열심히 해야한다. / text : Just a kidding, start : 6.6 seconds, end : 7.1 seconds, dur: 0.5 seconds, kor: 농담이야.) below are the scripts." + script}
-    ]                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        
-    )
+    ])
+
+    logger.info("get sentence from words +")
+
     return completion.choices[0].message.content
     
 def run_openai_for_translating_korean(script):          
@@ -120,6 +134,10 @@ def run_openai_for_translating_korean(script):
     return completion.choices[0].message.content
 
 def cleanup_file(file_path):
+    logger.info(f"+ remove downloaded file: {file_path}")
+
     if os.path.exists(file_path):
-        print("### remove")
+        logger.info("removing...")
         os.remove(file_path)
+
+    logger.info("remove downloaded file + ")
