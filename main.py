@@ -88,6 +88,8 @@ def download_audio_with_ytdlp(youtube_url: str) -> str:
         #'verbose': True, # for checking yt-dlp logs
         'cookies': 'cookies.txt',
         #'no-cookies': True,
+        'quiet': True,
+        'noplaylist': True
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
@@ -155,7 +157,14 @@ def get_video_infomation_from_url(youtube_url: str):
     logger.info("+ get_video_infomation_from_url : {youtube_url}")
     try:
         # Extract video information using yt-dlp
-        ydl_opts = {}
+        ydl_opts = {
+            'quiet': True,
+            'noplaylist': True,  # Don't download entire playlists
+            'skip_download': True,  # Skip downloading the video itself
+            'writeinfojson': True,  # Write video metadata to a JSON file
+            'cookies': 'cookies.txt',
+        }
+
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info_dict = ydl.extract_info(youtube_url, download=False)
             tracks = info_dict.get('subtitles', {}).get('en') or info_dict.get('automatic_captions', {}).get('en')
