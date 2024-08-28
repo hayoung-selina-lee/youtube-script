@@ -4,3 +4,4 @@ transformers
 requests
 openai
 youtube_transcript_api
+google-cloud-storage
