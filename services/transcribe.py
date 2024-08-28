@@ -1,5 +1,6 @@
 from transformers import pipeline
 import logging
+from youtube_transcript_api import YouTubeTranscriptApi
 
 logger = logging.getLogger(__name__)
 
@@ -44,5 +45,32 @@ def transcribe_audio_with_word_time_offsets_without_download(subtitles):
                 result_sentence += f"Word: {word}, Start: {start_time}s, End: {end_time}s / "
 
     result_sentence = result_sentence.rstrip(" / ")
-    logger.info("Transcribed subtitles successfully.")
+    logger.info("Transcribed subtitles successfully +")
     return result_sentence
+
+def transcribe_audio_with_word_time_offsets_using_google_api(video_id: str) -> str:
+    logger.info("+ transcribe_audio_with_word_time_offsets_using_google_api")
+    try:
+        # Fetch the transcript
+        transcript = YouTubeTranscriptApi.get_transcript(video_id)
+        
+        # Format the transcript into a single string
+        transcript_text = ""
+        
+        # Iterate through the transcript entries
+        for i, entry in enumerate(transcript):
+            start_time = entry['start']
+            text = entry['text']
+            
+            # Compute end time
+            if i + 1 < len(transcript):
+                end_time = transcript[i + 1]['start']
+            else:
+                end_time = start_time + entry['duration']
+            
+            transcript_text += f"Word: {text}, Start: {start_time}s, End: {end_time}s / "
+            
+        logger.info("transcribe_audio_with_word_time_offsets_using_google_api +")
+        return transcript_text.rstrip(" / ")
+    except Exception as e:
+        return f"Error fetching transcript: {e}"

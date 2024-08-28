@@ -3,3 +3,6 @@ yt-dlp
 transformers
 requests
 openai
+urlparse
+parse_qs
+youtube_transcript_api
