@@ -80,7 +80,7 @@ def transcribe_audio_with_word_time_offsets_using_google_api(video_id: str) -> s
         return f"Error fetching transcript: {e}"
 
 BUCKET_NAME = 'youtube-audio-test-storage'
-import google_utils
+from services.storage_client import get_google_storage_client
 def transcribe_audio_with_word_time_offsets_with_google_storage(audio_file_name):
     logger.info("+ get words and time from audio file")
     # Load the Whisper model using the pipeline
@@ -91,7 +91,7 @@ def transcribe_audio_with_word_time_offsets_with_google_storage(audio_file_name)
     )
     # try:
     # GCS에서 파일 가져오기
-    storage_client = google_utils.get_google_storage_client()
+    storage_client = get_google_storage_client()
     bucket = storage_client.bucket(BUCKET_NAME)
     audio_blob = bucket.blob(audio_file_name)
     
