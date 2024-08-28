@@ -1,10 +1,11 @@
 from fastapi import FastAPI
 from services import download, transcribe, openai_utils, video_info
 import logging
+import sys
 
 app = FastAPI()
 
-logging.basicConfig(level=logging.INFO, format='[MIMOS][%(levelname)s] %(message)s       (%(asctime)s)')
+logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[MIMOS][%(levelname)s] %(message)s       (%(asctime)s)')
 
 @app.get("/")
 def root():
