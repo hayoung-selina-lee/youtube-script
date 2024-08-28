@@ -18,6 +18,8 @@ async def get_script_from_url_with_google(youtubeURL: str):
     words_and_timing = transcribe.transcribe_audio_with_word_time_offsets_using_google_api(video_id)
     final_sentence_and_timing = openai_utils.run_openai_for_making_sentence(words_and_timing)
     return {
+        "video_id": video_id,
+        "words_and_timing": words_and_timing,
         "final_sentence_and_timing": final_sentence_and_timing,
     }
 
