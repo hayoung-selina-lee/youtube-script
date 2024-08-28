@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 def download_audio_with_ytdlp(youtube_url: str) -> str:
     logger.info(f"+ Downloading video from URL: {youtube_url}")
-    
+
     temp_dir = tempfile.gettempdir()
 
     ydl_opts = {
@@ -21,6 +21,9 @@ def download_audio_with_ytdlp(youtube_url: str) -> str:
             'preferredquality': '192',
         }],
         'cookies': 'cookies.txt',
+        'headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+        },
         'quiet': True,
         'noplaylist': True
     }
