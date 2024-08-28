@@ -11,6 +11,22 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[MIMOS][%(lev
 def root():
     return {"message": "Hello World"}
 
+# using google storage for saving video.
+@app.get("/script4/")
+async def get_script_from_url_with_google_storage(youtubeURL: str):
+    filename = download.download_audio_with_ytdlp_with_google_storage(youtubeURL)
+    words_and_timing = transcribe.transcribe_audio_with_word_time_offsets_with_google_storage(filename)
+    final_sentence_and_timing = openai_utils.run_openai_for_making_sentence(words_and_timing)
+    #formatted_json = remove_escape_word_and_restore_json_string(final_sentence_and_timing)
+
+    return {
+        "message": f"Audio downloaded and saved as {filename}",
+        #"url": url,
+        "words_and_timing" : words_and_timing,
+        "final_sentence_and_timing" : final_sentence_and_timing,
+        #"kor_sentence_and_timing" : kor_sentence_and_timing
+    }
+
 # using google api that enable to get youtube video's information.
 @app.get("/script3/")
 async def get_script_from_url_with_google(youtubeURL: str):
@@ -30,6 +46,7 @@ async def get_script_from_url_without_download(youtubeURL: str):
     words_and_timing = transcribe.transcribe_audio_with_word_time_offsets_without_download(subtitles)
     final_sentence_and_timing = openai_utils.run_openai_for_making_sentence(words_and_timing)
     return {
+        "subtitles": subtitles,
         "final_sentence_and_timing": final_sentence_and_timing,
     }
 
@@ -40,5 +57,6 @@ async def get_script_from_url(youtubeURL: str):
     words_and_timing = transcribe.transcribe_audio_with_word_time_offsets(file_name)
     final_sentence_and_timing = openai_utils.run_openai_for_making_sentence(words_and_timing)
     return {
+        "file_name": file_name,
         "final_sentence_and_timing": final_sentence_and_timing,
     }
