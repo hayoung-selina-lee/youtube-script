@@ -40,7 +40,7 @@ def download_audio_with_ytdlp(youtube_url: str) -> str:
     return file_name
 
 BUCKET_NAME = 'youtube-audio-test-storage'
-storage_client = storage.Client()
+import google_utils
 def download_audio_with_ytdlp_with_google_storage(youtube_url: str) -> str:
     logger.info(f"+ Downloading video from URL: {youtube_url}")
     ydl_opts = {
@@ -52,7 +52,7 @@ def download_audio_with_ytdlp_with_google_storage(youtube_url: str) -> str:
             'preferredcodec': 'wav',
             'preferredquality': '192',
         }],
-        'outtmpl': '/tmp/temp_audio.%(ext)s',  # Temporary file location
+        'outtmpl': '%(title)s.%(ext)s',  # Temporary file location
         'writeinfojson': False,
         'writethumbnail': False
     }
@@ -62,13 +62,14 @@ def download_audio_with_ytdlp_with_google_storage(youtube_url: str) -> str:
         ydl.download([youtube_url])
     
     # Find the downloaded file in the temporary directory
-    temp_filename = '/tmp/temp_audio.wav'
+    temp_filename = ydl_opts['outtmpl']
     
     # Read the file into memory
     with open(temp_filename, 'rb') as f:
         audio_buffer = io.BytesIO(f.read())
 
     # Upload to GCS
+    storage_client = google_utils.get_google_storage_client()
     bucket = storage_client.bucket(BUCKET_NAME)
     file_name = 'audio.wav'
     audio_blob = bucket.blob(file_name)
