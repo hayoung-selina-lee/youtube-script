@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from services import cookies, download, transcribe, openai_utils, video_info
+from services import subtitles, cookies, download, transcribe, openai_utils, video_info
 import logging
 import sys
 
@@ -11,6 +11,17 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[MIMOS][%(lev
 def root():
     return {"message": "Hello World"}
 
+
+# getting subtitles without download like running service
+@app.get("/script6/")
+async def get_script_from_url_with_google_storage(youtubeURL: str):
+    words_and_timing = subtitles.get_subtitles(youtubeURL)
+    final_sentence_and_timing = openai_utils.run_openai_for_making_sentence(words_and_timing)
+
+    return {
+        "words_and_timing" : words_and_timing,
+        "final_sentence_and_timing" : final_sentence_and_timing,
+    }
 
 # getting cookies first
 @app.get("/script5/")
