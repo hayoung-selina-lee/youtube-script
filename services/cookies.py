@@ -8,34 +8,33 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-def sanitize_url(url: str) -> str:
-    return re.sub(r'[^a-zA-Z0-9]', '_', url)
 
 async def get_cookies_from_url(url: str) -> Optional[Dict[str, str]]:
     logger.info(f"+ get cookies from url {url}")
 
+    source_filename = 'cookies.txt'
+
     temp_dir = '/tmp'
-    folder_name = sanitize_url(url)
-    folder_path = os.path.join(temp_dir, folder_name)
-    cookie_file_path = os.path.join(folder_path, 'cookies.txt')
+    cookie_file_path = os.path.join(temp_dir, 'cookies.txt')
 
-    if not os.path.exists(folder_path):
-        logger.info(f"create folder {folder_path}")
-        os.makedirs(folder_path)
-    else :
-        logger.info(f"Already had folder {cookie_file_path}")
-        return cookie_file_path
+    if not os.path.exists(cookie_file_path):
+        with open(cookie_file_path, 'w') as file:
+            file.write("")
 
+        try:
+            with open(source_filename, 'r') as source_file:
+                content = source_file.read()
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        if response.status_code == 200:
-            cookies = client.cookies.jar
-            cookie_dict = {cookie.name: cookie.value for cookie in cookies}
-            with open(cookie_file_path, 'w') as f:
-                json.dump(cookie_dict, f)
-            logger.info("get cookies from url :: SUCCESS +")
-            return cookie_file_path
-        else:
-            logger.info("get cookies from url :: FAIL +")
-            return None
+            # 복사할 파일을 쓰기 모드로 열기
+            with open(cookie_file_path, 'w') as destination_file:
+                # 읽어온 내용을 복사할 파일에 쓰기
+                destination_file.write(content)
+
+        except FileNotFoundError:
+            print(f"파일 '{source_filename}'을(를) 찾을 수 없습니다.")
+        except IOError as e:
+            print(f"파일 작업 중 오류 발생: {e}")
+
+    logger.info(f"get cookies from url {url} +")
+    print(f"get cookies from url {url} +")
+    return cookie_file_path

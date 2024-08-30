@@ -26,8 +26,8 @@ async def get_script_from_url_with_google_storage(youtubeURL: str):
 # getting cookies first
 @app.get("/script5/")
 async def get_script_from_url_with_google_storage(youtubeURL: str):
-    cookie_file = await cookies.get_cookies_from_url(youtubeURL)
-    file_name = download.download_audio_with_ytdlp_with_coockies(youtubeURL, cookie_file)
+    cookie_file_path = await cookies.get_cookies_from_url(youtubeURL)
+    file_name = download.download_audio_with_ytdlp_with_coockies(youtubeURL, cookie_file_path)
     words_and_timing = transcribe.transcribe_audio_with_word_time_offsets(file_name)
     final_sentence_and_timing = openai_utils.run_openai_for_making_sentence(words_and_timing)
 
