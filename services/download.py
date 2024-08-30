@@ -100,7 +100,8 @@ def download_audio_with_ytdlp_with_coockies(youtube_url: str, cookie_file: Optio
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
         },
         'quiet': False,
-        'noplaylist': True
+        'noplaylist': True,
+        'verbose': True
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
