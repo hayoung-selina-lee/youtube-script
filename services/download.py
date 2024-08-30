@@ -1,3 +1,4 @@
+from typing import Dict, Optional
 import yt_dlp
 import os
 import logging
@@ -77,4 +78,37 @@ def download_audio_with_ytdlp_with_google_storage(youtube_url: str) -> str:
     audio_blob.upload_from_file(audio_buffer, content_type='audio/wav')
 
     logger.info(f"File uploaded to GCS as {file_name}")
+    return file_name
+
+def download_audio_with_ytdlp_with_coockies(youtube_url: str, cookie_file: Optional[Dict[str, str]]) -> str:
+    logger.info(f"+ Downloading video from URL: {youtube_url}")
+
+    temp_dir = '/tmp'
+
+    ydl_opts = {
+        'format': 'bestaudio/best',
+        'extractaudio': True,
+        'audioformat': 'wav',
+        'outtmpl': os.path.join(temp_dir, '%(title)s.%(ext)s'),
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'wav',
+            'preferredquality': '192',
+        }],
+        'cookies': cookie_file,
+        'headers': {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'
+        },
+        'quiet': False,
+        'noplaylist': True
+    }
+
+    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+        info_dict = ydl.extract_info(youtube_url, download=True)
+        file_name = ydl.prepare_filename(info_dict).replace('.webm', '.wav')
+
+        final_path = os.path.join(temp_dir, os.path.basename(file_name))
+        os.rename(file_name, final_path)
+
+    logger.info(f"Downloaded video as {file_name}")
     return file_name

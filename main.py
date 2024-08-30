@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from services import download, transcribe, openai_utils, video_info
+from services import cookies, download, transcribe, openai_utils, video_info
 import logging
 import sys
 
@@ -10,6 +10,21 @@ logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='[MIMOS][%(lev
 @app.get("/")
 def root():
     return {"message": "Hello World"}
+
+
+# getting cookies first
+@app.get("/script5/")
+async def get_script_from_url_with_google_storage(youtubeURL: str):
+    cookie_file = await cookies.get_cookies_from_url(youtubeURL)
+    file_name = download.download_audio_with_ytdlp_with_coockies(youtubeURL, cookie_file)
+    words_and_timing = transcribe.transcribe_audio_with_word_time_offsets(file_name)
+    final_sentence_and_timing = openai_utils.run_openai_for_making_sentence(words_and_timing)
+
+    return {
+        "message": f"Audio downloaded and saved as {file_name}",
+        "words_and_timing" : words_and_timing,
+        "final_sentence_and_timing" : final_sentence_and_timing,
+    }
 
 # using google storage for saving video.
 @app.get("/script4/")
