@@ -106,7 +106,7 @@ def download_audio_with_ytdlp_with_coockies(youtube_url: str, cookie_file_path: 
         },
         'quiet': False,
         'noplaylist': True,
-        'verbose': True
+        'verbose': False
     }
 
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:

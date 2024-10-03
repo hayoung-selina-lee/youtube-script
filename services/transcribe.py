@@ -1,3 +1,4 @@
+import asyncio
 from transformers import pipeline
 import logging
 from youtube_transcript_api import YouTubeTranscriptApi
@@ -8,15 +9,21 @@ import tempfile
 
 logger = logging.getLogger(__name__)
 
-def transcribe_audio_with_word_time_offsets(audio_file_path):
+async def transcribe_audio_with_word_time_offsets(audio_file_path):
     logger.info("+ Transcribing audio with word time offsets.")
+
     transcriber = pipeline(
         "automatic-speech-recognition",
         model="openai/whisper-small",
         return_timestamps=True
     )
-    
-    transcription = transcriber(audio_file_path)
+
+    try:
+        transcription = await asyncio.to_thread(transcriber, audio_file_path)
+    except Exception as e:
+        logger.error(f"Error during transcription: {e}")
+        return None
+
     words_and_timing = ""
 
     for segment in transcription['chunks']:
