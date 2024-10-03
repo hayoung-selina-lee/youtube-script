@@ -13,6 +13,7 @@ def transcribe_audio_with_word_time_offsets(audio_file_path):
     transcriber = pipeline(
         "automatic-speech-recognition",
         model="openai/whisper-small",
+        language='en',  # 언어를 지정
         return_timestamps=True
     )
     
